@@ -4,38 +4,33 @@ from scipy.integrate import odeint
 import numpy as np
 from scipy.stats import qmc
 
-#Ideal Data Points
+'''
+    IDEAL DATA POINTS
+'''
 x_coords = np.array([0, 15, 30, 45, 60, 75, 90, 105, 120])
 y_coords = np.array([40000, 44000, 48000, 52500, 50000, 54500, 56750, 58000, 60000])
-#axis[1,0].plot(x_coords, y_coords, 'o')
-ideal_data = [x_coords, y_coords]
 
-##Parameter Values 
-
+'''
+    PARAMETER VALUES
+'''
 lambda_p = 5
-
 lambda_c = 10
-
 lambda_i = .5
-
 Beta = .00125
-
 alpha_c = .5
-
 alpha_i = .2
-
 S_pc = .9
-
 S_pn = 9e-6
-
 S_i = 2
-
 r = 1.8
-
 n = .8
 
-# Model
-def odes(x, t): 
+'''
+    MODEL FUNCTIONS
+    Passes state vector x of type list 
+    Passes time t of type float
+'''
+def odes(x: list, t: float) -> list: 
 
     P_n = x[0]
     P_c = x[1]
@@ -43,8 +38,9 @@ def odes(x, t):
     D_n = x[3]
     D_c = x[4]
     
-
-    # our ODEs 
+    '''
+        ODE's for proliferative, dead, and immune cells
+    '''
     dP_ndt = lambda_p - Beta * I * P_n - S_pn * P_n
     dP_cdt = lambda_c * P_c + Beta * I * P_n - alpha_i * I * P_c - S_pc * P_c
     dIdt   = lambda_i + alpha_c * P_c - S_i * I
@@ -140,3 +136,11 @@ print(f"S_pn       = {best_S_pn}")
 print(f"S_i        = {best_S_i}")
 print(f"r          = {best_r}")
 print(f"n          = {best_n}")
+
+fig, axs = plt.subplots()
+axs.grid()
+axs.plot(x_coords, y_coords, 'o',label='Ideal Data Points')
+axs.plot(x_coords, np.interp(x_coords, t, odeint(odes, [scaled_sample[best_idx,11],scaled_sample[best_idx,12],scaled_sample[best_idx,13],0,0], t)[:,1] + odeint(odes, [scaled_sample[best_idx,11],scaled_sample[best_idx,12],scaled_sample[best_idx,13],0,0], t)[:,4]), label='Best Fit from Model')
+axs.set_title('Ideal Data vs Best Fit From Model')
+axs.legend(['Ideal Data Points', 'Best Fit from Model'])
+plt.show()
