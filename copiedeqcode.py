@@ -1,4 +1,7 @@
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
 import scipy as sp
 from scipy.integrate import odeint
 import numpy as np
@@ -11,7 +14,7 @@ x_coords = np.array([0, 15, 30, 45, 60, 75, 90, 105, 120])
 y_coords = np.array([40000, 44000, 48000, 52500, 50000, 54500, 56750, 58000, 60000])
 
 '''
-    PARAMETER VALUES
+    COEFFICIENT VALUES
 '''
 lambda_p = 5
 lambda_c = 10
@@ -50,13 +53,17 @@ def odes(x: list, t: float) -> list:
 
     return [dP_ndt, dP_cdt, dIdt, dD_ndt, dD_cdt]
 
+'''
+    DEFINE PARAMTER VALUES
+'''
+
 # x0=[P_n, P_c, I, D_n, D_c]
 x_0 = [1.75e5, 40, 10, 0, 0] 
 
 #odeint
-# print(odes(x_0,0))
-tf = 120
-t = np.linspace(0,tf,1000)
+#print(odes(x_0,0))
+
+t = np.linspace(0,120,1000)
 x = odeint(odes, x_0, t)
 
 P_n = x[:,0]
@@ -137,10 +144,62 @@ print(f"S_i        = {best_S_i}")
 print(f"r          = {best_r}")
 print(f"n          = {best_n}")
 
-fig, axs = plt.subplots()
-axs.grid()
-axs.plot(x_coords, y_coords, 'o',label='Ideal Data Points')
-axs.plot(x_coords, np.interp(x_coords, t, odeint(odes, [scaled_sample[best_idx,11],scaled_sample[best_idx,12],scaled_sample[best_idx,13],0,0], t)[:,1] + odeint(odes, [scaled_sample[best_idx,11],scaled_sample[best_idx,12],scaled_sample[best_idx,13],0,0], t)[:,4]), label='Best Fit from Model')
-axs.set_title('Ideal Data vs Best Fit From Model')
-axs.legend(['Ideal Data Points', 'Best Fit from Model'])
+fig_plot, axs_plot = plt.subplots( 3, 2, figsize = ( 7, 7 ) )
+fig_sliders = plt.figure( figsize = ( 10, 5 ) )
+
+'''
+    PLOTS FOR 5 PARAMETERS AND TOTAL CANCER CELLS
+'''
+
+plots = [
+    (axs_plot[0, 0], P_n, 'cyan', '$P_n(t)$', 'Proliferative Normal Cells'),
+    (axs_plot[0, 1], P_c, 'olive', '$P_c(t)$', 'Proliferative Cancer Cells'),
+    (axs_plot[1, 0], D_n, 'pink', '$D_n(t)$', 'Dead Normal Cells'),
+    (axs_plot[1, 1], D_c, 'blue', '$D_c(t)$', 'Dead Cancer Cells'),
+    (axs_plot[2, 0], I,   'purple', '$I(t)$', 'Immune Cells'),
+    (axs_plot[2, 1], C,   'red',  '$C(t)$', 'Total Cancer Cells'),
+]
+
+'''
+    SLIDERS FOR COEFFICIENTS
+'''
+coefficients = [lambda_p, lambda_c, lambda_i, Beta, alpha_c, alpha_i, S_pc, S_pn, S_i, r, n]
+
+
+
+#sliders = [
+#    (axs[0, 0], 'Beta', best_Beta, -1.0, 1.0),
+#]
+
+for ax, data, color, title, ylabel in plots:
+    ax.plot(t, data, color = color)
+    ax.set_title(title)
+    ax.set_yscale('log')
+    ax.set_xlabel('$t$')
+    ax.set_ylabel(ylabel)
+    ax.grid()
+
+'''
+    SLIDERS FOR COEFFICIENT ADJUSTMENT
+'''
+beta_axs = fig_sliders.add_axes([0.06, 0.9, 0.35, 0.03])
+beta_slider = Slider(ax=beta_axs, label='Beta', valmin = best_Beta - best_Beta * uni_scaler, valmax = best_Beta + best_Beta * uni_scaler, valinit = best_Beta)
+lambda_p_axs = fig_sliders.add_axes([0.56, 0.9, 0.35, 0.03])
+lambda_p_slider = Slider(ax=lambda_p_axs, label='Lambda_p', valmin = best_lambda_p - best_lambda_p * uni_scaler, valmax = best_lambda_p + best_lambda_p * uni_scaler, valinit=best_lambda_p)
+lambda_c_axs = fig_sliders.add_axes([0.06, 0.85, 0.35, 0.03])
+lambda_c_slider = Slider(ax=lambda_c_axs, label='Lambda_c', valmin = best_lambda_c - best_lambda_c * uni_scaler, valmax = best_lambda_c + best_lambda_c * uni_scaler, valinit=best_lambda_c)
+
+
+
+
+def update(val):
+    current_beta = beta_slider.val
+    current_lambda_p = lambda_p_slider.val
+    dP_ndt = current_lambda_p - current_beta * I * P_n - S_pn * P_n
+    dP_cdt = lambda_c * P_c + current_beta * I * P_n - alpha_i * I * P_c - S_pc * P_c
+    axs_plot[0, 0].lines[0].set_ydata(dP_ndt)
+    axs_plot[0, 1].lines[0].set_ydata(dP_cdt)
+    fig_plot.canvas.draw_idle()
+
+beta_slider.on_changed(update)
 plt.show()
