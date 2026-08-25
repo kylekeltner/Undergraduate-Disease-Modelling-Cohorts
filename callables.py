@@ -1,3 +1,10 @@
+
+def reproductive_number( u_c: float, alpha_c: float, Beta: float, lambda_p: float, S_pn: float, S_pc: float, lambda_i: float, S_i: float ) -> float:
+    return ( u_c * ( 1 - alpha_c ) + Beta * ( lambda_p / S_pn ) ) / ( ( S_pc * ( 1 + alpha_c ) )  * ( lambda_i / S_i ) )
+
+"""
+NON-SLIDER VALUES FOR R_0
+
 alpha_c = 0    #for future...keep curcumin at a range of 0.1 to 0.2
 
 Beta = 0.000124   #mins: 0.00012 - 0.000124
@@ -17,6 +24,8 @@ r = 1.8 #1.8             #min: 1.8     #hrs: 0.03 #0 is important
 
 #reproductive number
 r_0 = (u_c * (1 - alpha_c) + Beta * (lambda_p / S_p)) / ((S_c * (1 + alpha_c)) * (lambda_i / S_i)) 
+
+"""
 
 
 

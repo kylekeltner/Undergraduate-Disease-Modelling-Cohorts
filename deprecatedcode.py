@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import scipy as sp
 from scipy.integrate import odeint
 import numpy as np
-from reproductive_number import *
+from callables import *
 from scipy.stats import qmc
 
 def odes (x, t): 
