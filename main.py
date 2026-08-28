@@ -1,3 +1,4 @@
+#IMPORTS
 import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
@@ -7,6 +8,7 @@ import scipy as sp
 from scipy.integrate import odeint
 import numpy as np
 from scipy.stats import qmc
+import sympy as sp
 
 '''
     DATA POINTS FOR FITTING
@@ -15,7 +17,7 @@ x_coords = np.array([0, 15, 30, 45, 60, 75, 90, 105, 120])
 y_coords = np.array([40000, 44000, 48000, 52500, 50000, 54500, 56750, 58000, 60000])
 
 '''
-    DESCRIPTIONS OF EACH PARAMETER
+    ALL EQUATION PARAMETERS
     lambda_p: colon cell population
     lambda_c: cancer cell population
     lambda_i: immune cell population
@@ -26,8 +28,6 @@ y_coords = np.array([40000, 44000, 48000, 52500, 50000, 54500, 56750, 58000, 600
     S_pn: death rate of normal cells
     S_i: death rate of immune cells
     r: rate that normal cells exit
-    u_c: value specifically for r_0, unsure what it is
-    r_0: reproductive number
 '''
 
 lambda_p = 5
@@ -40,7 +40,38 @@ S_pc = 1.03e-3 #gathered from averages in Data Driven Mathematical Model of Colo
 S_pn = 6.52e-3 #gathered from averages in Data Driven Mathematical Model of Colon Cancer Progression, avg of delta_n
 S_i = 5e-2 
 r = 1.8
+
+'''
+    ALL R_0 PARAMETERS
+    u_c: Truthfully, I do not know what it is
+'''
+
 u_c = 1.8
+
+'''
+    DYNHAMIC COUNTERPARTS FOR EQUATION PARAMETERS
+    lambda_p: colon cell population
+    lambda_c: cancer cell population
+    lambda_i: immune cell population
+    Beta: rate of carcinogenesis scaled by immune cells
+    alpha_c: rate of immune cell activation by cancer cells
+    alpha_i: immune cell impact on death of cancer cells
+    S_pc: death rate of cancer cells
+    S_pn: death rate of normal cells
+    S_i: death rate of immune cells
+    r: rate that normal cells exit
+'''
+
+dyn_lambda_p = 5
+dyn_lambda_c = 2
+dyn_lambda_i = 0.5
+dyn_Beta = 2e-8
+dyn_alpha_c = .5
+dyn_alpha_i = .2
+dyn_S_pc = 1.03e-3
+dyn_S_pn = 6.52e-3
+dyn_S_i = 5e-2 
+dyn_r = 1.8
 
 '''
     MODEL FUNCTIONS
@@ -48,7 +79,8 @@ u_c = 1.8
     Passes time t of type float
 '''
 def odes(x: list, t: float) -> list: 
-
+    for i in range( len( x ) ):
+        print(x[i])
     P_n = x[0]
     P_c = x[1]
     I   = x[2]
@@ -57,6 +89,7 @@ def odes(x: list, t: float) -> list:
     '''
         ODE's for proliferative, dead, and immune cells
     '''
+
     dP_ndt = lambda_p - ( Beta * I * P_n ) - ( S_pn * P_n )
     dP_cdt = ( lambda_c * P_c ) + ( Beta * I * P_n ) - ( alpha_i * I * P_c ) - ( S_pc * P_c )
     dIdt   = lambda_i + ( alpha_c * P_c ) - ( S_i * I )
@@ -70,14 +103,14 @@ def odes(x: list, t: float) -> list:
 '''
 
 '''
-    DEFINE INITIAL CoNDITIONS FOR POPULATIONS
-    x0 = [P_n, P_c, I, D_c]
+    DEFINE INITIAL CONDITIONS FOR POPULATIONS
+    x_0 = [P_n, P_c, I, D_c]
 '''
 
 x_0 = [1.75e5, 5.3e-3, 10, 0] 
 
 t = np.linspace(0,120,1000)
-x = odeint(odes, x_0, t)
+x = odeint(odes, x_0, t) #how does this pass x_0 into odes?? <------------------!!!! WHAAAAAAAAAAAAAAAAAAAAAAAA
 
 P_n = x[:,0]
 P_c = x[:,1]
@@ -165,7 +198,7 @@ def update_from_slider_value(val: float) -> None:
 def update_reproductive_number(val: float) -> None:
     r_0 = callables.reproductive_number( u_c, alpha_c_slider.val, beta_slider.val, lambda_p_slider.val, S_pn_slider.val, S_pc_slider.val, lambda_i_slider.val, S_i_slider.val )
     print(f"Updated reproductive number (R_0): {r_0}")
-
+    return r_0
 
 for i in sliders:
     i.on_changed( update_from_slider_value )
@@ -180,6 +213,17 @@ def reset_sliders( val: float ) -> None:
     for i in sliders:
         i.reset( )
 
+sensitivities = callables.r_0_sensitivity_analysis( [ lambda_p, lambda_c, lambda_i, Beta, alpha_c, alpha_i, S_pc, S_pn, S_i, r ], 50 ) 
+print( sensitivities )
+
 button.on_clicked( reset_sliders )
 plt.tight_layout( )
 plt.show( )
+
+
+
+dict1 = { buh: 12, swag: 9 }
+list1=[]
+for kw, arg in dict1.items():
+    list1.append(kw)
+print(list1)
