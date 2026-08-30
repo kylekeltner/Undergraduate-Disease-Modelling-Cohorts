@@ -139,3 +139,16 @@ axis[2,1].axis("off")
 # Adjust layout for better spacing
 plt.tight_layout()
 plt.show()
+
+'''
+def r_0_sensitivity_analysis( dyn_params_names: list, dyn_params: list, r_0: float ) -> dict:
+    r_0_symbol = ( sp.symbols( 'u_c' ) * ( 1 - sp.symbols( 'alpha_c' ) ) + sp.symbols( 'Beta' ) * ( sp.symbols( 'lambda_p' ) / sp.symbols( 'S_pn' ) ) ) / ( ( sp.symbols( 'S_pc' ) * ( 1 + sp.symbols( 'alpha_c' ) ) )  * ( sp.symbols( 'lambda_i' ) / sp.symbols( 'S_i' ) ) )
+    symbol_list = [ ]
+    for i in range( len( dyn_params ) ): 
+        symbol_list.append( sp.symbols( str( dyn_params[i] ) ) )
+
+    sensitivities = { }
+    for i in range( len( symbol_list ) ):
+        sensitivities[ dyn_params_names[i] ] = ( 1 / r_0 ) * sp.diff( r_0_symbol, symbol_list[i] )
+    return sensitivities
+'''

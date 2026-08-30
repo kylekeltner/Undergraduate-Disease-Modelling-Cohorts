@@ -1,17 +1,38 @@
 import sympy as sp
+import math
 
-def reproductive_number( u_c: float, alpha_c: float, Beta: float, lambda_p: float, S_pn: float, S_pc: float, lambda_i: float, S_i: float ) -> float:
-    r_0 = ( u_c * ( 1 - alpha_c ) + Beta * ( lambda_p / S_pn ) ) / ( ( S_pc * ( 1 + alpha_c ) )  * ( lambda_i / S_i ) )
+'''
+    FUNCTION FOR CALCULATING R_0
+    Takes intput of type float from a set of dynamic parameters
+    Returns value of type float for R_0
+'''
+
+def reproductive_number( d_lambda_c: float, d_alpha_i: float, d_alpha_c: float, d_Beta: float, d_lambda_p: float, d_S_pn: float, d_S_pc: float, d_lambda_i: float, d_S_i: float ) -> float:
+    r_0 = ( d_lambda_c + ( d_Beta * ( d_lambda_i / d_S_i ) * ( d_lambda_p / ( d_Beta * ( d_lambda_i / d_S_i ) ) ) ) ) / ( ( d_alpha_i * ( d_lambda_i / d_S_i ) ) + d_S_pc )
     return r_0
 
-def r_0_sensitivity_analysis( vars: list, r_0: float ) -> dict:
-    for i in range( len( vars ) ): 
-        symbol_list = [ sp.symbols( str( vars[i] ) ) ]
-    sensitivities = {}
+'''
+    FUNCTION FOR CALCULATING PARAMETER SENSITIVITIES TO R_0
+    Takes intput of type list of dynamic parameters and a float for R_0
+    Returns value of type dict for sensitivities of each parameter to R_0
+'''
 
-    for i in symbol_list:
-        sensitivities[i] = ( i / r_0 ) * sp.diff( r_0, i )
+def r_0_sensitivity_analysis( dyn_params_names: list, dyn_params: list, r_0: float ) -> dict:
+    symbol_list = [ ]
+    for i in dyn_params_names:
+        symbol_list.append( sp.Symbol( str( i ) ) )
+    r_0_symbol = ( sp.Symbol( 'd_lambda_c' ) + ( sp.Symbol( 'd_Beta' ) * ( sp.Symbol( 'd_lambda_i' ) / sp.Symbol( 'd_S_i' ) ) * ( sp.Symbol( 'd_lambda_p' ) / ( sp.Symbol( 'd_Beta' ) * ( sp.Symbol( 'd_lambda_i' ) / sp.Symbol( 'd_S_i' ) ) ) ) ) ) / ( ( sp.Symbol( 'd_alpha_i' ) * ( sp.Symbol( 'd_lambda_i' ) / sp.Symbol( 'd_S_i' ) ) ) + sp.Symbol( 'd_S_pc' ) )
+
+    sensitivities = { }
+    for i in range( len( symbol_list ) ):
+        sensitivities[ dyn_params_names[i] ] = ( ( 1 / r_0 ) * ( sp.diff( r_0_symbol, symbol_list[i] ) ).subs( { symbol_list[j]: dyn_params[j] for j in range( len( symbol_list ) ) } ) )
     return sensitivities
+
+
+#( lambda_c + ( Beta * ( lambda_i / S_i ) * ( lambda_p / ( Beta * ( lambda_i / S_i ) ) ) ) ) / ( ( alpha_i * ( lambda_i / S_i ) ) + S_pc )
+
+
+#r_0 = ( u_c * ( 1 - alpha_c ) + Beta * ( lambda_p / S_pn ) ) / ( ( S_pc * ( 1 + alpha_c ) )  * ( lambda_i / S_i ) )
 
 """
 NON-SLIDER VALUES FOR R_0
@@ -61,9 +82,6 @@ r_0 = (u_c * (1 - alpha_c) + Beta * (lambda_p / S_p)) / ((S_c * (1 + alpha_c)) *
 
 #S_S_pc = (S_pc/R_0)(sp.diff(R_0,S_pc))
 #-S_pc/(alpha_i(lambda_i/S_i)+ S_pc)
-
-
-lambda_c, lambda_p, lambda_i, alpha_i, S_i, S_pc = sp.symbols('lambda_c, lambda_p, lambda_i, alpha_i, S_i, S_pc')
 
 
 #Access individual sensitivities

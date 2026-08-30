@@ -62,16 +62,19 @@ u_c = 1.8
     r: rate that normal cells exit
 '''
 
-dyn_lambda_p = 5
-dyn_lambda_c = 2
-dyn_lambda_i = 0.5
-dyn_Beta = 2e-8
-dyn_alpha_c = .5
-dyn_alpha_i = .2
-dyn_S_pc = 1.03e-3
-dyn_S_pn = 6.52e-3
-dyn_S_i = 5e-2 
-dyn_r = 1.8
+d_lambda_p = 5
+d_lambda_c = 2
+d_lambda_i = 0.5
+d_Beta = 2e-8
+d_alpha_c = .5
+d_alpha_i = .2
+d_S_pc = 1.03e-3
+d_S_pn = 6.52e-3
+d_S_i = 5e-2 
+d_r = 1.8
+
+dyn_params = [ d_lambda_p, d_lambda_c, d_lambda_i, d_Beta, d_alpha_c, d_alpha_i, d_S_pc, d_S_pn, d_S_i, d_r ]
+dyn_params_names = ['d_lambda_p', 'd_lambda_c', 'd_lambda_i', 'd_Beta', 'd_alpha_c', 'd_alpha_i', 'd_S_pc', 'd_S_pn', 'd_S_i', 'd_r']
 
 '''
     MODEL FUNCTIONS
@@ -79,8 +82,7 @@ dyn_r = 1.8
     Passes time t of type float
 '''
 def odes(x: list, t: float) -> list: 
-    for i in range( len( x ) ):
-        print(x[i])
+
     P_n = x[0]
     P_c = x[1]
     I   = x[2]
@@ -196,7 +198,7 @@ def update_from_slider_value(val: float) -> None:
 '''
 
 def update_reproductive_number(val: float) -> None:
-    r_0 = callables.reproductive_number( u_c, alpha_c_slider.val, beta_slider.val, lambda_p_slider.val, S_pn_slider.val, S_pc_slider.val, lambda_i_slider.val, S_i_slider.val )
+    r_0 = callables.reproductive_number( alpha_i_slider.val, lambda_c_slider.val, alpha_c_slider.val, beta_slider.val, lambda_p_slider.val, S_pn_slider.val, S_pc_slider.val, lambda_i_slider.val, S_i_slider.val )
     print(f"Updated reproductive number (R_0): {r_0}")
     return r_0
 
@@ -213,17 +215,9 @@ def reset_sliders( val: float ) -> None:
     for i in sliders:
         i.reset( )
 
-sensitivities = callables.r_0_sensitivity_analysis( [ lambda_p, lambda_c, lambda_i, Beta, alpha_c, alpha_i, S_pc, S_pn, S_i, r ], 50 ) 
+sensitivities = callables.r_0_sensitivity_analysis( dyn_params_names, dyn_params, callables.reproductive_number( alpha_i_slider.val, lambda_c_slider.val, alpha_c_slider.val, beta_slider.val, lambda_p_slider.val, S_pn_slider.val, S_pc_slider.val, lambda_i_slider.val, S_i_slider.val ) )
 print( sensitivities )
 
 button.on_clicked( reset_sliders )
 plt.tight_layout( )
 plt.show( )
-
-
-
-dict1 = { buh: 12, swag: 9 }
-list1=[]
-for kw, arg in dict1.items():
-    list1.append(kw)
-print(list1)
